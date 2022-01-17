@@ -1,13 +1,15 @@
-import matches from "ts-matches";
-import { asSchemaMatcher } from "../src";
+import { asSchemaMatcher } from "../mod.ts";
+import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 
-test("invalid type will throw", () => {
+// const { test } = Deno;
+
+it("invalid type will throw", () => {
   expect(() => {
     asSchemaMatcher({ type: "invalid" } as any);
-  }).toThrowErrorMatchingInlineSnapshot(`"Unknown schema: invalid"`);
+  }).toThrow(`Unknown schema: invalid`);
 });
 
-test("Validate simple object", () => {
+it("Validate simple object", () => {
   const schema = {
     type: "object",
   } as const;
@@ -20,11 +22,9 @@ test("Validate simple object", () => {
     // @ts-expect-error
     const test: Type = 5;
     matcher.unsafeCast(test);
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"Failed type: object(5) given input 5"`
-  );
+  }).toThrow(`Failed type: object(5) given input 5`);
 });
-test("null checking", () => {
+it("null checking", () => {
   const schema = {
     type: "null",
   } as const;
@@ -37,19 +37,17 @@ test("null checking", () => {
     // @ts-expect-error
     const test: typeof matcher._TYPE = "test";
     matcher.unsafeCast(test);
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"Failed type: null(\\"test\\") given input \\"test\\""`
-  );
+  }).toThrow(`Failed type: null("test") given input "test"`);
 });
 
-test("Missing schema", () => {
+it("Missing schema", () => {
   const matcher = asSchemaMatcher(null);
   type Type = typeof matcher._TYPE;
   const valid = false;
   matcher.unsafeCast(valid);
 });
 describe("references", () => {
-  test("Missing definition for reference in array", () => {
+  it("Missing definition for reference in array", () => {
     expect(() => {
       const schema = {
         type: "array",
@@ -65,12 +63,12 @@ describe("references", () => {
       } as const;
       const matcher = asSchemaMatcher(schema);
       type Type = typeof matcher._TYPE;
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Expecting the schema reference be something #/definitions/Currencies in {\\"Currency\\":{\\"type\\":\\"string\\",\\"enum\\":[\\"USD\\",\\"ETH\\",\\"BTC\\"]}}"`
+    }).toThrow(
+      `Expecting the schema reference be something #/definitions/Currencies in {"Currency":{"type":"string","enum":["USD","ETH","BTC"]}}`
     );
   });
 
-  test("Missing definition for reference in properties", () => {
+  it("Missing definition for reference in properties", () => {
     expect(() => {
       const schema = {
         type: "object",
@@ -89,8 +87,8 @@ describe("references", () => {
       const matcher = asSchemaMatcher(schema);
       type Type = typeof matcher._TYPE;
       const test: Type = "test" as never;
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Expecting the schema reference be something #/definitions/Currencies in {\\"Currency\\":{\\"type\\":\\"string\\",\\"enum\\":[\\"USD\\",\\"ETH\\",\\"BTC\\"]}}"`
+    }).toThrow(
+      `Expecting the schema reference be something #/definitions/Currencies in {"Currency":{"type":"string","enum":["USD","ETH","BTC"]}}`
     );
   });
 
@@ -109,7 +107,7 @@ describe("references", () => {
     const matcher = asSchemaMatcher(schema);
     type Type = typeof matcher._TYPE;
 
-    test("valid", () => {
+    it("valid", () => {
       const value: Type = "USD";
       matcher.unsafeCast(value);
     });
@@ -129,19 +127,19 @@ describe("references", () => {
     const matcher = asSchemaMatcher(schema);
     type Type = typeof matcher._TYPE;
 
-    test("valid", () => {
+    it("valid", () => {
       const value: Type = "USD";
       matcher.unsafeCast(value);
     });
-    expect(() => {
-      // @ts-expect-error
-      const input: Type = "BadCurrency";
-      expect(matcher.unsafeCast(input));
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: Or<Literal<\\"USD\\">,...>(\\"BadCurrency\\") given input \\"BadCurrency\\""`
-    );
+    it("should fail", () => {
+      expect(() => {
+        // @ts-expect-error
+        const input: Type = "BadCurrency";
+        matcher.unsafeCast(input);
+      }).toThrow(`Failed type: Or<Literal<"USD">,...>("BadCurrency") given input "BadCurrency"`);
+    });
   });
-  test("definitions not an object", () => {
+  it("definitions not an object", () => {
     expect(() => {
       const schema = {
         type: "array",
@@ -151,7 +149,7 @@ describe("references", () => {
         definitions: true,
       } as const;
       const matcher = asSchemaMatcher(schema);
-    }).toThrowErrorMatchingInlineSnapshot(`"Expecting some definitions"`);
+    }).toThrow(`Expecting some definitions`);
   });
   describe("Complicated Schema", () => {
     const definitions = {
@@ -240,13 +238,7 @@ describe("references", () => {
       },
       QuoteRequest: {
         type: "object",
-        required: [
-          "base_currency",
-          "quote_currency",
-          "request_id",
-          "side",
-          "size",
-        ],
+        required: ["base_currency", "quote_currency", "request_id", "side", "size"],
         properties: {
           base_currency: {
             $ref: "#/definitions/Currency",
@@ -390,7 +382,7 @@ describe("references", () => {
         enum: ["Buy", "Sell"],
       },
     } as const;
-    test("Simple invalidation", () => {
+    it("Simple invalidation", () => {
       const schema = {
         type: "array",
         items: {
@@ -408,11 +400,9 @@ describe("references", () => {
         // @ts-expect-error
         const input: Type = ["Fun"];
         expect(matcher.unsafeCast(input));
-      }).toThrowErrorMatchingInlineSnapshot(
-        `"Failed type: [0]Or<Literal<\\"USD\\">,...>(\\"Fun\\") given input [\\"Fun\\"]"`
-      );
+      }).toThrow(`Failed type: [0]Or<Literal<"USD">,...>("Fun") given input ["Fun"]`);
     });
-    test("Reference Disjoint", () => {
+    it("Reference Disjoint", () => {
       const schema = {
         type: "array",
         items: {
@@ -440,11 +430,11 @@ describe("references", () => {
         // @ts-expect-error
         const input: Type = ["Fun"];
         expect(matcher.unsafeCast(input));
-      }).toThrowErrorMatchingInlineSnapshot(
-        `"Failed type: [0]Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>(\\"Fun\\") given input [\\"Fun\\"]"`
+      }).toThrow(
+        `Failed type: [0]Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>("Fun") given input ["Fun"]`
       );
     });
-    test("Reference Disjoint array", () => {
+    it("Reference Disjoint array", () => {
       const schema = {
         type: "array",
         items: [
@@ -474,11 +464,11 @@ describe("references", () => {
         // @ts-expect-error
         const input: Type = ["wrongRequest"];
         expect(matcher.unsafeCast(input));
-      }).toThrowErrorMatchingInlineSnapshot(
-        `"Failed type: [0]Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>(\\"wrongRequest\\") given input [\\"wrongRequest\\"]"`
+      }).toThrow(
+        `Failed type: [0]Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>("wrongRequest") given input ["wrongRequest"]`
       );
     });
-    test("Full shape", () => {
+    it("Full shape", () => {
       const schema = {
         type: "array",
         items: {
@@ -508,9 +498,7 @@ describe("references", () => {
         // @ts-expect-error
         const input: Type = ["Fun"];
         expect(matcher.unsafeCast(input));
-      }).toThrowErrorMatchingInlineSnapshot(
-        `"Failed type: [0]object(\\"Fun\\") given input [\\"Fun\\"]"`
-      );
+      }).toThrow(`Failed type: [0]object("Fun") given input ["Fun"]`);
     });
   });
 });
@@ -521,21 +509,19 @@ describe("any of types", () => {
   } as const;
   const matcher = asSchemaMatcher(schema);
   type Type = typeof matcher._TYPE;
-  test("Testing valid a", () => {
+  it("Testing valid a", () => {
     const input: Type = "a";
     matcher.unsafeCast(input);
   });
-  test("Testing valid b", () => {
+  it("Testing valid b", () => {
     const input: Type = "b";
     matcher.unsafeCast(input);
   });
-  test("Testing invalid", () => {
+  it("Testing invalid", () => {
     // @ts-expect-error
     const input: Type = "c";
 
-    expect(() => matcher.unsafeCast(input)).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: Or<Literal<\\"a\\">,...>(\\"c\\") given input \\"c\\""`
-    );
+    expect(() => matcher.unsafeCast(input)).toThrow(`Failed type: Or<Literal<"a">,...>("c") given input "c"`);
   });
 });
 
@@ -548,23 +534,23 @@ describe("all of types", () => {
   } as const;
   const matcher = asSchemaMatcher(schema);
   type Type = typeof matcher._TYPE;
-  test("Testing valid", () => {
+  it("Testing valid", () => {
     const input: Type = { a: "a", b: "b" };
     matcher.unsafeCast(input);
   });
-  test("Testing invalid partial", () => {
+  it("Testing invalid partial", () => {
     // @ts-expect-error
     const input: Type = { a: "a" };
-    expect(() => matcher.unsafeCast(input)).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"b\\"]Shape<{b:any}>(\\"missingProperty\\") given input {\\"a\\":\\"a\\"}"`
+    expect(() => matcher.unsafeCast(input)).toThrow(
+      `Failed type: ["b"]Shape<{b:any}>("missingProperty") given input {"a":"a"}`
     );
   });
-  test("Testing invalid", () => {
+  it("Testing invalid", () => {
     // @ts-expect-error
     const input: Type = { a: "a", b: "e" };
 
-    expect(() => matcher.unsafeCast(input)).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"b\\"]Literal<\\"b\\">(\\"e\\") given input {\\"a\\":\\"a\\",\\"b\\":\\"e\\"}"`
+    expect(() => matcher.unsafeCast(input)).toThrow(
+      `Failed type: ["b"]Literal<"b">("e") given input {"a":"a","b":"e"}`
     );
   });
 });
@@ -576,18 +562,16 @@ describe("enum types", () => {
   } as const;
   const testMatcher = asSchemaMatcher(testSchema);
   type TestMatcher = typeof testMatcher._TYPE;
-  test("valid string", () => {
+  it("valid string", () => {
     const input: TestMatcher = "red";
     testMatcher.unsafeCast(input);
   });
-  test("invalid string", () => {
+  it("invalid string", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: Type = "calculator";
       testMatcher.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: Or<Literal<\\"red\\">,...>(\\"calculator\\") given input \\"calculator\\""`
-    );
+    }).toThrow(`Failed type: Or<Literal<"red">,...>("calculator") given input "calculator"`);
   });
 });
 
@@ -670,76 +654,76 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
     },
   };
 
-  test("throws for missing requireds", () => {
+  it("throws for missing requireds", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: TestSchema = {};
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"productId\\"]Shape<{productId:any,productName:any,price:any,errors:any}>(\\"missingProperty\\") given input {}"`
+    }).toThrow(
+      `Failed type: ["productId"]Shape<{productId:any,productName:any,price:any,errors:any}>("missingProperty") given input {}`
     );
   });
-  test("throws for invalid integer", () => {
+  it("throws for invalid integer", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: TestSchema = { ...validShape, productId: "0" };
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"productId\\"]number(\\"0\\") given input {\\"errors\\":null,\\"productId\\":\\"0\\",\\"price\\":0.4,\\"productName\\":\\"test\\",\\"tags\\":[\\"a\\"],\\"extras\\":[\\"string\\",4],\\"isProduct\\":false,\\"dimensions\\":{\\"length\\":7,\\"width\\":12,\\"height\\":9.5}}"`
+    }).toThrow(
+      `Failed type: ["productId"]number("0") given input {"errors":null,"productId":"0","price":0.4,"productName":"test","tags":["a"],"extras":["string",4],"isProduct":false,"dimensions":{"length":7,"width":12,"height":9.5}}`
     );
   });
 
-  test("throws for invalid number", () => {
+  it("throws for invalid number", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: TestSchema = { ...validShape, price: "invalid" };
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"price\\"]number(\\"invalid\\") given input {\\"errors\\":null,\\"productId\\":0,\\"price\\":\\"invalid\\",\\"productName\\":\\"test\\",\\"tags\\":[\\"a\\"],\\"extras\\":[\\"string\\",4],\\"isProduct\\":false,\\"dimensions\\":{\\"length\\":7,\\"width\\":12,\\"height\\":9.5}}"`
+    }).toThrow(
+      `Failed type: ["price"]number("invalid") given input {"errors":null,"productId":0,"price":"invalid","productName":"test","tags":["a"],"extras":["string",4],"isProduct":false,"dimensions":{"length":7,"width":12,"height":9.5}}`
     );
   });
 
-  test("throws for invalid string", () => {
+  it("throws for invalid string", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: TestSchema = { ...validShape, productName: 0 };
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"productName\\"]string(0) given input {\\"errors\\":null,\\"productId\\":0,\\"price\\":0.4,\\"productName\\":0,\\"tags\\":[\\"a\\"],\\"extras\\":[\\"string\\",4],\\"isProduct\\":false,\\"dimensions\\":{\\"length\\":7,\\"width\\":12,\\"height\\":9.5}}"`
+    }).toThrow(
+      `Failed type: ["productName"]string(0) given input {"errors":null,"productId":0,"price":0.4,"productName":0,"tags":["a"],"extras":["string",4],"isProduct":false,"dimensions":{"length":7,"width":12,"height":9.5}}`
     );
   });
 
-  test("throws for invalid array value", () => {
+  it("throws for invalid array value", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: TestSchema = { ...validShape, tags: [0] };
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"tags\\"][0]string(0) given input {\\"errors\\":null,\\"productId\\":0,\\"price\\":0.4,\\"productName\\":\\"test\\",\\"tags\\":[0],\\"extras\\":[\\"string\\",4],\\"isProduct\\":false,\\"dimensions\\":{\\"length\\":7,\\"width\\":12,\\"height\\":9.5}}"`
+    }).toThrow(
+      `Failed type: ["tags"][0]string(0) given input {"errors":null,"productId":0,"price":0.4,"productName":"test","tags":[0],"extras":["string",4],"isProduct":false,"dimensions":{"length":7,"width":12,"height":9.5}}`
     );
   });
 
-  test("throws for invalid array", () => {
+  it("throws for invalid array", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: TestSchema = { ...validShape, extras: "invalid" };
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"extras\\"]Array<unknown>(\\"invalid\\") given input {\\"errors\\":null,\\"productId\\":0,\\"price\\":0.4,\\"productName\\":\\"test\\",\\"tags\\":[\\"a\\"],\\"extras\\":\\"invalid\\",\\"isProduct\\":false,\\"dimensions\\":{\\"length\\":7,\\"width\\":12,\\"height\\":9.5}}"`
+    }).toThrow(
+      `Failed type: ["extras"]ArrayOf<any>("invalid") given input {"errors":null,"productId":0,"price":0.4,"productName":"test","tags":["a"],"extras":"invalid","isProduct":false,"dimensions":{"length":7,"width":12,"height":9.5}}`
     );
   });
 
-  test("throws for invalid boolean", () => {
+  it("throws for invalid boolean", () => {
     expect(() => {
       // @ts-expect-error
       const invalid: TestSchema = { ...validShape, isProduct: "false" };
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"isProduct\\"]boolean(\\"false\\") given input {\\"errors\\":null,\\"productId\\":0,\\"price\\":0.4,\\"productName\\":\\"test\\",\\"tags\\":[\\"a\\"],\\"extras\\":[\\"string\\",4],\\"isProduct\\":\\"false\\",\\"dimensions\\":{\\"length\\":7,\\"width\\":12,\\"height\\":9.5}}"`
+    }).toThrow(
+      `Failed type: ["isProduct"]boolean("false") given input {"errors":null,"productId":0,"price":0.4,"productName":"test","tags":["a"],"extras":["string",4],"isProduct":"false","dimensions":{"length":7,"width":12,"height":9.5}}`
     );
   });
 
-  test("throws for invalid nested", () => {
+  it("throws for invalid nested", () => {
     expect(() => {
       const invalid: TestSchema = {
         ...validShape,
@@ -751,12 +735,12 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
       };
 
       matchTestSchema.unsafeCast(invalid);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed type: [\\"dimensions\\"][\\"length\\"]Shape<{length:any,width:any,height:any}>(\\"missingProperty\\") given input {\\"errors\\":null,\\"productId\\":0,\\"price\\":0.4,\\"productName\\":\\"test\\",\\"tags\\":[\\"a\\"],\\"extras\\":[\\"string\\",4],\\"isProduct\\":false,\\"dimensions\\":{\\"width\\":12,\\"height\\":9.5}}"`
+    }).toThrow(
+      `Failed type: ["dimensions"]["length"]Shape<{length:any,width:any,height:any}>("missingProperty") given input {"errors":null,"productId":0,"price":0.4,"productName":"test","tags":["a"],"extras":["string",4],"isProduct":false,"dimensions":{"width":12,"height":9.5}}`
     );
   });
 
-  test("Will not fail for a valid shape", () => {
+  it("Will not fail for a valid shape", () => {
     const testSchema: TestSchema = matchTestSchema.unsafeCast(validShape);
   });
 });
