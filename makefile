@@ -13,6 +13,6 @@ human_coverage:
 	rm -rf coverage || true
 	rm -rf cov_profile || true
 	rm coverage.lcov || true
-	deno test --unstable --coverage=coverage src/tests.ts   
+	deno test --unstable --coverage=coverage ./tests.ts   
 	deno --unstable coverage ./coverage --lcov > coverage.lcov
 	genhtml -o cov_profile/html coverage.lcov

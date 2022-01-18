@@ -1,4 +1,5 @@
 lib/
+cov_profile/
 .vscode/
 # Logs
 logs
