@@ -5,6 +5,7 @@ import {
   FunctionParser,
   GuardParser,
   IParser,
+  NamedParser,
   NilParser,
   NumberParser,
   object,
@@ -22,12 +23,30 @@ type ToSchemaObject = {
 type ToSchemaNill = {
   type: "null";
 };
+type ToSchemaString = {
+  type: "string";
+};
+type ToSchemaNumber = {
+  type: "number";
+};
+type ToSchemaBool = {
+  type: "boolean";
+};
 
 // prettier-ignore
 export type ToSchema<A> =
-    A extends object ? ToSchemaObject :
-    A extends null | undefined ? ToSchemaNill :
-    never
+    (
+        A extends boolean ? ToSchemaBool :
+        A extends object ? ToSchemaObject :
+        A extends null | undefined ? ToSchemaNill :
+        A extends string ? ToSchemaString :
+        A extends number ? ToSchemaNumber :
+        {}
+    ) & {
+        definitions?: {
+            [K in keyof A]: ToSchema<any>;
+        }
+    }
 
 export type ParserReturn<A> = A extends Parser<any, infer U> ? U : never;
 const test = toSchema(object);
@@ -37,7 +56,10 @@ function unwrapParser(a: IParser<unknown, unknown>): IParser<unknown, unknown> {
   return a;
 }
 type Test = typeof test;
-export function toSchema<P extends Parser<A, B>, A, B>(parserComingIn: P): ToSchema<ParserReturn<P>> {
+export function toSchema<P extends Parser<A, B>, A, B>(
+  parserComingIn: P,
+  definitions?: object
+): ToSchema<ParserReturn<P>> {
   const parser = unwrapParser(parserComingIn);
   const {
     description: { name, extras, children },
@@ -62,36 +84,53 @@ export function toSchema<P extends Parser<A, B>, A, B>(parserComingIn: P): ToSch
   if (parser instanceof NilParser) {
     return {
       type: "null",
+      definitions,
     } as any;
   }
 
   if (parser instanceof StringParser) {
     return {
       type: "string",
+      definitions,
     } as any;
   }
   if (parser instanceof ObjectParser) {
     return {
       type: "object",
+      definitions,
     } as any;
   }
   if (parser instanceof NumberParser) {
     return {
       type: "number",
+      definitions,
     } as any;
   }
   if (parser instanceof BoolParser) {
     return {
-      type: "bool",
+      type: "boolean",
+      definitions,
     } as any;
   }
   if (parser instanceof AnyParser) {
     return {
       type: "any",
+      definitions,
     } as any;
   }
   if (parser instanceof ArrayParser) {
     return {} as any;
+  }
+  if (parser instanceof NamedParser) {
+    const { definitions: newDefinitions, ...child } = toSchema(parser.parent, definitions);
+    const parserName = `#/definitions/${parser.name}`;
+    return {
+      $ref: parserName,
+      definitions: {
+        ...newDefinitions,
+        [parser.name]: child,
+      },
+    } as any;
   }
   const specifiers = [...extras.map(saferStringify), ...children.map(Parser.parserAsString)];
   const specifiersString = `<${specifiers.join(",")}>`;
