@@ -32,11 +32,14 @@ type ToSchemaNumber = {
 type ToSchemaBool = {
   type: "boolean";
 };
-
+type ToSchemaArray<A> = {
+  type: "array";
+};
 // prettier-ignore
 export type ToSchema<A> =
     (
         A extends boolean ? ToSchemaBool :
+        A extends any[] ? ToSchemaArray<unknown> :
         A extends object ? ToSchemaObject :
         A extends null | undefined ? ToSchemaNill :
         A extends string ? ToSchemaString :
@@ -56,6 +59,12 @@ function unwrapParser(a: IParser<unknown, unknown>): IParser<unknown, unknown> {
   return a;
 }
 type Test = typeof test;
+/**
+ * Converting from a schema parser to a json schema type
+ * @param parserComingIn Convert this parser into a json schema
+ * @param definitions Used for recursion later, shouldn't be used by the user
+ * @returns
+ */
 export function toSchema<P extends Parser<A, B>, A, B>(
   parserComingIn: P,
   definitions?: object
@@ -119,7 +128,9 @@ export function toSchema<P extends Parser<A, B>, A, B>(
     } as any;
   }
   if (parser instanceof ArrayParser) {
-    return {} as any;
+    return {
+      type: "array",
+    } as any;
   }
   if (parser instanceof NamedParser) {
     const { definitions: newDefinitions, ...child } = toSchema(parser.parent, definitions);

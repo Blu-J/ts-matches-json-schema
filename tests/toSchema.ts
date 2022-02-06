@@ -1,5 +1,5 @@
 import { asSchemaMatcher } from "../mod.ts";
-import { Parser, object, nill, string, boolean, number } from "../dependencies.ts";
+import { Parser, object, nill, string, boolean, number, array } from "../dependencies.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { toSchema } from "../mod.ts";
 import { isType } from "./util.ts";
@@ -147,6 +147,26 @@ it("named parser", () => {
   }).toThrow(`Failed type: object(5) given input 5`);
 });
 
+it("array parser", () => {
+  const originalMatcher = array;
+  const schema = toSchema(originalMatcher);
+  const matcher = asSchemaMatcher(schema);
+
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = [];
+  const returnedValue = Array.from(matcher.unsafeCast(goodValue));
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = {};
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: ArrayOf<any>({}) given input {}`);
+});
 // TODO Array
 // TODO Constants
 // TODO ArrayOf
