@@ -146,3 +146,11 @@ it("named parser", () => {
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: object(5) given input 5`);
 });
+
+// TODO Array
+// TODO Constants
+// TODO ArrayOf
+// TODO Shapes
+// TODO Every
+// TODO Some
+// TODO Complicated references
