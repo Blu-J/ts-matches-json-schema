@@ -10,7 +10,7 @@ export const matchNullType = literal("null");
 
 export const matchTypeShape = shape({ type: any });
 export const matchItems = shape({ items: object });
-export const matchPrortiesShape = shape({
+export const matchPropertiesShape = shape({
   properties: object,
 });
 export const matchRequireds = shape({

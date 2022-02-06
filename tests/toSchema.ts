@@ -1,8 +1,9 @@
 import { asSchemaMatcher } from "../mod.ts";
-import { Parser, object, nill, string, boolean, number, array } from "../dependencies.ts";
+import { Parser, object, nill, string, boolean, number, array, arrayOf } from "../dependencies.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { toSchema } from "../mod.ts";
 import { isType } from "./util.ts";
+import { ToSchema } from "../src/to_schema.ts";
 describe("round trips of primitives", () => {
   it("Object", () => {
     const originalMatcher = object;
@@ -167,10 +168,44 @@ it("array parser", () => {
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ArrayOf<any>({}) given input {}`);
 });
-// TODO Array
+
+it("arrayOf parser", () => {
+  const originalMatcher = arrayOf(number);
+  const schema = toSchema(originalMatcher);
+  isType<ToSchema<number[]>>(schema);
+  const matcher = asSchemaMatcher(schema);
+  isType<Parser<unknown, readonly number[]>>(matcher);
+
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = [6];
+  const returnedValue = Array.from(matcher.unsafeCast(goodValue));
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = ["hello"];
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: [0]number("hello") given input ["hello"]`);
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = [false];
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: [0]number(false) given input [false]`);
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = [3, false];
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: [1]number(false) given input [3,false]`);
+});
+
 // TODO Constants
-// TODO ArrayOf
 // TODO Shapes
 // TODO Every
 // TODO Some
 // TODO Complicated references
+// TODO ArrayOf With Definition
+// TODO Sahpes With Definition

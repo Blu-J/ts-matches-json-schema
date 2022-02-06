@@ -1,5 +1,6 @@
 import {
   AnyParser,
+  ArrayOfParser,
   ArrayParser,
   BoolParser,
   FunctionParser,
@@ -34,12 +35,13 @@ type ToSchemaBool = {
 };
 type ToSchemaArray<A> = {
   type: "array";
+  items: ToSchema<A>;
 };
 // prettier-ignore
 export type ToSchema<A> =
     (
         A extends boolean ? ToSchemaBool :
-        A extends any[] ? ToSchemaArray<unknown> :
+        A extends (infer A)[] ? ToSchemaArray<A> :
         A extends object ? ToSchemaObject :
         A extends null | undefined ? ToSchemaNill :
         A extends string ? ToSchemaString :
@@ -125,6 +127,12 @@ export function toSchema<P extends Parser<A, B>, A, B>(
     return {
       type: "any",
       definitions,
+    } as any;
+  }
+  if (parser instanceof ArrayOfParser) {
+    return {
+      type: "array",
+      items: toSchema(parser.parser, definitions),
     } as any;
   }
   if (parser instanceof ArrayParser) {

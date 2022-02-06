@@ -20,7 +20,7 @@ import {
   matchRequireds,
   matchAnyOf,
   matchAllOf,
-  matchPrortiesShape,
+  matchPropertiesShape,
   matchEnum,
   matchRef,
   matchTypeShape,
@@ -102,7 +102,7 @@ function matchAllOfFrom(schema: unknown, definitions: any): Validator<unknown, a
 }
 
 function matchPropertiesFrom(schema: unknown, definitions: any): Validator<unknown, any> {
-  if (!matchPrortiesShape.test(schema)) {
+  if (!matchPropertiesShape.test(schema)) {
     return any;
   }
   const properties = schema.properties;
