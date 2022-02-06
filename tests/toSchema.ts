@@ -1,5 +1,5 @@
 import { asSchemaMatcher } from "../mod.ts";
-import { Parser, object, nill, string, boolean, number, array, arrayOf } from "../dependencies.ts";
+import { Parser, object, nill, string, boolean, number, array, arrayOf, literal } from "../dependencies.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { toSchema } from "../mod.ts";
 import { isType } from "./util.ts";
@@ -65,29 +65,10 @@ describe("round trips of primitives", () => {
     }).toThrow(`Failed type: string(5) given input 5`);
   });
 
-  it("string", () => {
-    const originalMatcher = string;
-    const schema = toSchema(originalMatcher);
-    const matcher = asSchemaMatcher(schema);
-    type Type = typeof matcher._TYPE;
-    const goodValue: Type = "test";
-    const returnedValue = matcher.unsafeCast(goodValue);
-    isType<typeof originalMatcher._TYPE>(returnedValue);
-    isType<typeof matcher._TYPE>(returnedValue);
-    isType<Type>(returnedValue);
-    // @ts-expect-error
-    isType<number>(returnedValue);
-
-    expect(() => {
-      // @ts-expect-error
-      const test: Type = 5;
-      matcher.unsafeCast(test);
-    }).toThrow(`Failed type: string(5) given input 5`);
-  });
-
   it("number", () => {
     const originalMatcher = number;
     const schema = toSchema(originalMatcher);
+    isType<{ type: "number" }>(schema);
     const matcher = asSchemaMatcher(schema);
     type Type = typeof matcher._TYPE;
     const goodValue: Type = 5;
@@ -202,7 +183,72 @@ it("arrayOf parser", () => {
   }).toThrow(`Failed type: [1]number(false) given input [3,false]`);
 });
 
-// TODO Constants
+describe("given round trips for all primative constants (enums of 1 option)", () => {
+  it("string", () => {
+    const originalMatcher = literal("hello");
+    const schema = toSchema(originalMatcher);
+    isType<{ type: "string"; enum: ["hello"] }>(schema);
+    const matcher = asSchemaMatcher(schema);
+    type Type = typeof matcher._TYPE;
+    const goodValue: Type = "hello";
+    const returnedValue = matcher.unsafeCast(goodValue);
+    type Type2 = ToSchema<"test">;
+    isType<typeof originalMatcher._TYPE>(returnedValue);
+    isType<typeof matcher._TYPE>(returnedValue);
+    isType<Type>(returnedValue);
+    // @ts-expect-error
+    isType<"bad">(returnedValue);
+
+    expect(() => {
+      // @ts-expect-error
+      const test: Type = "bad";
+      matcher.unsafeCast(test);
+    }).toThrow(`Failed type: Literal<"hello">("bad") given input "bad"`);
+  });
+
+  it("number", () => {
+    const originalMatcher = literal(5);
+    const schema = toSchema(originalMatcher);
+    isType<{ type: "number"; enum: [5] }>(schema);
+    const matcher = asSchemaMatcher(schema);
+    type Type = typeof matcher._TYPE;
+    const goodValue: Type = 5;
+    const returnedValue = matcher.unsafeCast(goodValue);
+    type Type2 = ToSchema<"test">;
+    isType<typeof originalMatcher._TYPE>(returnedValue);
+    isType<typeof matcher._TYPE>(returnedValue);
+    isType<Type>(returnedValue);
+    // @ts-expect-error
+    isType<2>(returnedValue);
+
+    expect(() => {
+      // @ts-expect-error
+      const test: Type = 4;
+      matcher.unsafeCast(test);
+    }).toThrow(`Failed type: Literal<5>(4) given input 4`);
+  });
+
+  it("bool", () => {
+    const originalMatcher = literal(true);
+    const schema = toSchema(originalMatcher);
+    const matcher = asSchemaMatcher(schema);
+    type Type = typeof matcher._TYPE;
+    const goodValue: Type = true;
+    const returnedValue = matcher.unsafeCast(goodValue);
+    isType<typeof originalMatcher._TYPE>(returnedValue);
+    isType<typeof matcher._TYPE>(returnedValue);
+    isType<Type>(returnedValue);
+    // @ts-expect-error
+    isType<number>(returnedValue);
+
+    expect(() => {
+      // @ts-expect-error
+      const test: Type = false;
+      matcher.unsafeCast(test);
+    }).toThrow(`Failed type: Literal<true>(false) given input false`);
+  });
+});
+
 // TODO Shapes
 // TODO Every
 // TODO Some
