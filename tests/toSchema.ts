@@ -364,7 +364,36 @@ it("should work with an every", () => {
   }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
 });
 
-// TODO Every
+it("should work with an every with names", () => {
+  const originalMatcher = every(
+    shape({ a: literal(12).name("AmTwelve") }),
+    shape({ a: number.name("someNumber") })
+      .name("other")
+      .name("superNestings")
+  ).name("everything");
+  const schema = toSchema(originalMatcher);
+  const matcher = asSchemaMatcher(schema);
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = { a: 12 };
+  const returnedValue = matcher.unsafeCast(goodValue);
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+
+  expect(schema.definitions).toHaveProperty("AmTwelve");
+  expect(schema.definitions).toHaveProperty("other");
+  expect(schema).toHaveProperty("$ref");
+  expect((schema as any).$ref).toEqual("#/definitions/everything");
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = { a: 6 };
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
+});
+
 // TODO Some
 // TODO Complicated references
 // TODO Partial
