@@ -1,5 +1,5 @@
 import { asSchemaMatcher } from "../mod.ts";
-import { Parser, object, nill, string, boolean, number, array, arrayOf, literal } from "../dependencies.ts";
+import { Parser, object, nill, string, boolean, number, array, arrayOf, literal, shape } from "../dependencies.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { toSchema } from "../mod.ts";
 import { isType } from "./util.ts";
@@ -183,6 +183,43 @@ it("arrayOf parser", () => {
   }).toThrow(`Failed type: [1]number(false) given input [3,false]`);
 });
 
+it("arrayOf parser with names", () => {
+  const originalMatcher = arrayOf(number.name("Im_a_number")).name("Im_an_array");
+  const schema = toSchema(originalMatcher);
+  isType<ToSchema<number[]>>(schema);
+  const matcher = asSchemaMatcher(schema);
+  isType<Parser<unknown, readonly number[]>>(matcher);
+
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = [6];
+  const returnedValue = Array.from(matcher.unsafeCast(goodValue));
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+  expect(schema.definitions).toHaveProperty("Im_a_number");
+  expect(schema.definitions).toHaveProperty("Im_an_array");
+  expect(schema).toHaveProperty("$ref");
+  expect((schema as any).$ref).toEqual("#/definitions/Im_an_array");
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = ["hello"];
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: [0]number("hello") given input ["hello"]`);
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = [false];
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: [0]number(false) given input [false]`);
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = [3, false];
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: [1]number(false) given input [3,false]`);
+});
+
 describe("given round trips for all primative constants (enums of 1 option)", () => {
   it("string", () => {
     const originalMatcher = literal("hello");
@@ -249,9 +286,65 @@ describe("given round trips for all primative constants (enums of 1 option)", ()
   });
 });
 
-// TODO Shapes
+it("should round trip for a shape", () => {
+  const originalMatcher = shape({ a: literal(5) });
+  type _<A> = A;
+  type test = _<
+    ToSchema<{
+      a: 5;
+    }>
+  >;
+  const schema = toSchema(originalMatcher);
+  const matcher = asSchemaMatcher(schema);
+  isType<Parser<unknown, { a: 5 }>>(matcher);
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = { a: 5 };
+  const returnedValue = matcher.unsafeCast(goodValue);
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = { a: 6 };
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: ["a"]Literal<5>(6) given input {"a":6}`);
+});
+
+it("should round trip for a shape with name", () => {
+  const originalMatcher = shape({ a: literal(12).name("isFive") }).name("isShapeMagic");
+  type _<A> = A;
+  type test = _<
+    ToSchema<{
+      a: 5;
+    }>
+  >;
+  const schema = toSchema(originalMatcher);
+  console.log("Schema is ", schema);
+  const matcher = asSchemaMatcher(schema);
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = { a: 12 };
+  const returnedValue = matcher.unsafeCast(goodValue);
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+
+  expect(schema.definitions).toHaveProperty("isFive");
+  expect(schema.definitions).toHaveProperty("isShapeMagic");
+  expect(schema).toHaveProperty("$ref");
+  expect((schema as any).$ref).toEqual("#/definitions/isShapeMagic");
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = { a: 6 };
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
+});
+
 // TODO Every
 // TODO Some
 // TODO Complicated references
-// TODO ArrayOf With Definition
-// TODO Sahpes With Definition

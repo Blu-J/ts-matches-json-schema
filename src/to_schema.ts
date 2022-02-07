@@ -48,21 +48,36 @@ type ToSchemaArray<A> = {
   type: "array";
   items: ToSchema<A>;
 };
+
+type toSchemaShape<A extends { [key: string]: any }> = {
+  type: "object";
+  properties: {
+    [K in keyof A]: ToSchema<A[K]>;
+  };
+  required: Array<keyof A>;
+};
+
+type test = toSchemaShape<{
+  a: 5;
+}>;
 // prettier-ignore
 export type ToSchema<A> =
     (
         A extends boolean ? ToSchemaBool<A> :
-        A extends (infer A)[] ? ToSchemaArray<A> :
-        A extends object ? ToSchemaObject :
+        A extends (infer A)[] | readonly (infer A)[]  ? ToSchemaArray<A> :
+        A extends object ?
+          keyof A extends never ? ToSchemaObject :
+          toSchemaShape<A> :
         A extends null | undefined ? ToSchemaNill :
         A extends string ? ToSchemaString<A> :
         A extends number ? ToSchemaNumber<A> :
         {}
-    ) & {
-        definitions?: {
-            [K in keyof A]: ToSchema<any>;
-        }
+    )
+& {
+    definitions?: {
+        [K in keyof A]: ToSchema<any>;
     }
+}
 
 export type ParserReturn<A> = A extends Parser<any, infer U> ? U : never;
 const test = toSchema(object);
@@ -78,16 +93,22 @@ type Test = typeof test;
  * @param definitions Used for recursion later, shouldn't be used by the user
  * @returns
  */
-export function toSchema<P extends Parser<A, B>, A, B>(
-  parserComingIn: P,
-  definitions?: object
-): ToSchema<ParserReturn<P>> {
+export function toSchema<P extends Parser<A, B>, A, B>(parserComingIn: P): ToSchema<ParserReturn<P>> {
   const parser = unwrapParser(parserComingIn);
   const {
     description: { name, extras, children },
   } = parser;
   if (parser instanceof ShapeParser) {
-    return {} as any;
+    const { parserMap } = parser.parserMap;
+    type ParserMap = typeof parserMap;
+    const finalDefinitions = {} as any;
+    const properties = {} as { [K: string]: ToSchema<any> };
+    for (const [key, value] of Object.entries(parser.parserMap)) {
+      const { definitions, ...schema } = toSchema(value);
+      properties[key] = schema;
+      Object.assign(finalDefinitions, definitions);
+    }
+    return { type: "object", properties, definitions: finalDefinitions } as any;
   }
   if (parser instanceof LiteralsParser) {
     const { values } = parser;
@@ -121,44 +142,40 @@ export function toSchema<P extends Parser<A, B>, A, B>(
   if (parser instanceof NilParser) {
     return {
       type: "null",
-      definitions,
     } as any;
   }
 
   if (parser instanceof StringParser) {
     return {
       type: "string",
-      definitions,
     } as any;
   }
   if (parser instanceof ObjectParser) {
     return {
       type: "object",
-      definitions,
     } as any;
   }
   if (parser instanceof NumberParser) {
     return {
       type: "number",
-      definitions,
     } as any;
   }
   if (parser instanceof BoolParser) {
     return {
       type: "boolean",
-      definitions,
     } as any;
   }
   if (parser instanceof AnyParser) {
     return {
       type: "any",
-      definitions,
     } as any;
   }
   if (parser instanceof ArrayOfParser) {
+    const { definitions, ...items } = toSchema(parser.parser);
     return {
       type: "array",
-      items: toSchema(parser.parser, definitions),
+      items,
+      definitions,
     } as any;
   }
   if (parser instanceof ArrayParser) {
@@ -167,7 +184,7 @@ export function toSchema<P extends Parser<A, B>, A, B>(
     } as any;
   }
   if (parser instanceof NamedParser) {
-    const { definitions: newDefinitions, ...child } = toSchema(parser.parent, definitions);
+    const { definitions: newDefinitions, ...child } = toSchema(parser.parent);
     const parserName = `#/definitions/${parser.name}`;
     return {
       $ref: parserName,
