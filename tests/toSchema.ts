@@ -1,5 +1,17 @@
 import { asSchemaMatcher } from "../mod.ts";
-import { Parser, object, nill, string, boolean, number, array, arrayOf, literal, shape } from "../dependencies.ts";
+import {
+  Parser,
+  object,
+  nill,
+  string,
+  boolean,
+  number,
+  array,
+  arrayOf,
+  literal,
+  shape,
+  every,
+} from "../dependencies.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { toSchema } from "../mod.ts";
 import { isType } from "./util.ts";
@@ -288,12 +300,6 @@ describe("given round trips for all primative constants (enums of 1 option)", ()
 
 it("should round trip for a shape", () => {
   const originalMatcher = shape({ a: literal(5) });
-  type _<A> = A;
-  type test = _<
-    ToSchema<{
-      a: 5;
-    }>
-  >;
   const schema = toSchema(originalMatcher);
   const matcher = asSchemaMatcher(schema);
   isType<Parser<unknown, { a: 5 }>>(matcher);
@@ -315,14 +321,7 @@ it("should round trip for a shape", () => {
 
 it("should round trip for a shape with name", () => {
   const originalMatcher = shape({ a: literal(12).name("isFive") }).name("isShapeMagic");
-  type _<A> = A;
-  type test = _<
-    ToSchema<{
-      a: 5;
-    }>
-  >;
   const schema = toSchema(originalMatcher);
-  console.log("Schema is ", schema);
   const matcher = asSchemaMatcher(schema);
   type Type = typeof matcher._TYPE;
   const goodValue: Type = { a: 12 };
@@ -345,6 +344,27 @@ it("should round trip for a shape with name", () => {
   }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
 });
 
+it("should work with an every", () => {
+  const originalMatcher = every(shape({ a: literal(12) }), shape({ a: number }));
+  const schema = toSchema(originalMatcher);
+  const matcher = asSchemaMatcher(schema);
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = { a: 12 };
+  const returnedValue = matcher.unsafeCast(goodValue);
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = { a: 6 };
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
+});
+
 // TODO Every
 // TODO Some
 // TODO Complicated references
+// TODO Partial

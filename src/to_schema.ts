@@ -17,6 +17,7 @@ import {
   saferStringify,
   ShapeParser,
   StringParser,
+  ConcatParsers,
 } from "../dependencies.ts";
 
 type nonLiteralsAreNever<A, AnyLiteralValueInTypeA> =
@@ -89,6 +90,8 @@ function unwrapParser(a: IParser<unknown, unknown>): IParser<unknown, unknown> {
 type Test = typeof test;
 /**
  * Converting from a schema parser to a json schema type
+ *
+ * Note: Return type will work when consumed by asSchemaMatcher, but may not be correct. We know this might be the case with every and some types.
  * @param parserComingIn Convert this parser into a json schema
  * @param definitions Used for recursion later, shouldn't be used by the user
  * @returns
@@ -127,6 +130,18 @@ export function toSchema<P extends Parser<A, B>, A, B>(parserComingIn: P): ToSch
   }
   if (parser instanceof OrParsers) {
     return {} as any;
+    // const parent = unwrapParser(parser.parent);
+    // const parentString = toSchema(parent);
+    // if (parent instanceof OrParsers) return parentString;
+
+    // return {} as any;
+  }
+  if (parser instanceof ConcatParsers) {
+    const { parent, otherParser } = parser;
+    const { definitions, ...left } = toSchema(parent);
+    const { definitions: otherDefinitions, ...right } = toSchema(otherParser);
+    Object.assign(definitions, otherDefinitions);
+    return { allOf: [left, right], definitions } as any;
     // const parent = unwrapParser(parser.parent);
     // const parentString = toSchema(parent);
     // if (parent instanceof OrParsers) return parentString;
