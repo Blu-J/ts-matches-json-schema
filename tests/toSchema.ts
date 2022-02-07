@@ -11,6 +11,7 @@ import {
   literal,
   shape,
   every,
+  some,
 } from "../dependencies.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { toSchema } from "../mod.ts";
@@ -343,8 +344,27 @@ it("should round trip for a shape with name", () => {
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
 });
+it("should work with an every simple", () => {
+  const originalMatcher = every(literal(5), number);
+  const schema = toSchema(originalMatcher);
+  const matcher = asSchemaMatcher(schema);
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = 5;
+  const returnedValue = matcher.unsafeCast(goodValue);
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<6>(returnedValue);
 
-it("should work with an every", () => {
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = 6;
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: Literal<5>(6) given input 6`);
+});
+
+it("should work with an every shapes", () => {
   const originalMatcher = every(shape({ a: literal(12) }), shape({ a: number }));
   const schema = toSchema(originalMatcher);
   const matcher = asSchemaMatcher(schema);
@@ -394,6 +414,38 @@ it("should work with an every with names", () => {
   }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
 });
 
-// TODO Some
+describe("should work with an some with names", () => {
+  const originalMatcher = some(number, string).name("everything");
+  const schema = toSchema(originalMatcher);
+  const matcher = asSchemaMatcher(schema);
+  type Type = typeof matcher._TYPE;
+  it("should work with number", () => {
+    const goodValue: Type = 5;
+    const returnedValue = matcher.unsafeCast(goodValue);
+    isType<typeof originalMatcher._TYPE>(returnedValue);
+    isType<typeof matcher._TYPE>(returnedValue);
+    isType<Type>(returnedValue);
+    // @ts-expect-error
+    isType<number>(returnedValue);
+    // @ts-expect-error
+    isType<string>(returnedValue);
+  });
+  it("should work with string", () => {
+    const goodValue: Type = "some string";
+    const returnedValue = matcher.unsafeCast(goodValue);
+    isType<typeof originalMatcher._TYPE>(returnedValue);
+    isType<typeof matcher._TYPE>(returnedValue);
+    isType<Type>(returnedValue);
+    // @ts-expect-error
+    isType<number>(returnedValue);
+  });
+  it("should fail on something that is not in some", () => {
+    expect(() => {
+      // @ts-expect-error
+      const test: Type = { a: 6 };
+      matcher.unsafeCast(test);
+    }).toThrow(`Failed type: Or<number,...>({"a":6}) given input {"a":6}`);
+  });
+});
 // TODO Complicated references
 // TODO Partial

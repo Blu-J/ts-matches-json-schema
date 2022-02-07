@@ -122,31 +122,20 @@ export function toSchema<P extends Parser<A, B>, A, B>(parserComingIn: P): ToSch
       } as any;
     }
     return {} as any;
-    // const parent = unwrapParser(parser.parent);
-    // const parentString = toSchema(parent);
-    // if (parent instanceof OrParsers) return parentString;
-
-    // return {} as any;
   }
   if (parser instanceof OrParsers) {
-    return {} as any;
-    // const parent = unwrapParser(parser.parent);
-    // const parentString = toSchema(parent);
-    // if (parent instanceof OrParsers) return parentString;
-
-    // return {} as any;
+    const { parent, otherParser } = parser;
+    const { definitions: leftDefinitions, ...left } = toSchema(parent);
+    const { definitions: otherDefinitions, ...right } = toSchema(otherParser);
+    const definitions = { ...leftDefinitions, ...otherDefinitions };
+    return { oneOf: [left, right], definitions } as any;
   }
   if (parser instanceof ConcatParsers) {
     const { parent, otherParser } = parser;
-    const { definitions, ...left } = toSchema(parent);
+    const { definitions: leftDefinitions, ...left } = toSchema(parent);
     const { definitions: otherDefinitions, ...right } = toSchema(otherParser);
-    Object.assign(definitions, otherDefinitions);
+    const definitions = { ...leftDefinitions, ...otherDefinitions };
     return { allOf: [left, right], definitions } as any;
-    // const parent = unwrapParser(parser.parent);
-    // const parentString = toSchema(parent);
-    // if (parent instanceof OrParsers) return parentString;
-
-    // return {} as any;
   }
   if (parser instanceof GuardParser) {
     return {} as any;
