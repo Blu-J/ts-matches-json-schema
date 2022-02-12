@@ -11,7 +11,9 @@ you want to have full validation, but no typescript types, something like
 [AJV.js](https://ajv.js.org/) is going to fit your bill better.
 
 ## Example Usuage
+
 Usage of converting from a schema to a parser/ ts-matcher
+
 ```ts
 // Here we have brought in the test schema. This schema was cloned off
 // https://json-schema.org/learn/getting-started-step-by-step.html

@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any ban-types
 import {
   AnyParser,
   ArrayOfParser,
@@ -12,11 +13,9 @@ import {
   NamedParser,
   NilParser,
   NumberParser,
-  object,
   ObjectParser,
   OrParsers,
   Parser,
-  saferStringify,
   ShapeParser,
   StringParser,
 } from "../dependencies.ts";
@@ -128,9 +127,6 @@ export function toSchema<P extends Parser<A, B>, A, B>(
   parserComingIn: P,
 ): ToSchema<ParserReturn<P>> {
   const parser = unwrapParser(parserComingIn);
-  const {
-    description: { name, extras, children },
-  } = parser;
   if (parser instanceof ShapeParser) {
     const { parserMap } = parser.parserMap;
     type ParserMap = typeof parserMap;
@@ -239,5 +235,4 @@ export function toSchema<P extends Parser<A, B>, A, B>(
   }
   console.error(parserComingIn);
   throw new Error("Should never get here");
-  return {} as any;
 }

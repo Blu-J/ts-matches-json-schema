@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any ban-types
 import { asSchemaMatcher } from "../mod.ts";
 import {
   array,
@@ -32,11 +33,11 @@ describe("round trips of primitives", () => {
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<number>(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = 5;
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: object(5) given input 5`);
@@ -52,11 +53,11 @@ describe("round trips of primitives", () => {
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<number>(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = 5;
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: null(5) given input 5`);
@@ -72,11 +73,11 @@ describe("round trips of primitives", () => {
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<number>(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = 5;
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: string(5) given input 5`);
@@ -93,11 +94,11 @@ describe("round trips of primitives", () => {
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<boolean>(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = "bad";
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: number("bad") given input "bad"`);
@@ -113,11 +114,11 @@ describe("round trips of primitives", () => {
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<number>(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = 5;
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: boolean(5) given input 5`);
@@ -136,11 +137,11 @@ it("named parser", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = 5;
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: object(5) given input 5`);
@@ -157,11 +158,11 @@ it("array parser", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = {};
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ArrayOf<any>({}) given input {}`);
@@ -180,21 +181,21 @@ it("arrayOf parser", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = ["hello"];
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: [0]number("hello") given input ["hello"]`);
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = [false];
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: [0]number(false) given input [false]`);
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = [3, false];
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: [1]number(false) given input [3,false]`);
@@ -215,7 +216,7 @@ it("arrayOf parser with names", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
   expect(schema.definitions).toHaveProperty("Im_a_number");
   expect(schema.definitions).toHaveProperty("Im_an_array");
@@ -223,17 +224,17 @@ it("arrayOf parser with names", () => {
   expect((schema as any).$ref).toEqual("#/definitions/Im_an_array");
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = ["hello"];
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: [0]number("hello") given input ["hello"]`);
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = [false];
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: [0]number(false) given input [false]`);
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = [3, false];
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: [1]number(false) given input [3,false]`);
@@ -252,11 +253,11 @@ describe("given round trips for all primative constants (enums of 1 option)", ()
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<"bad">(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = "bad";
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: Literal<"hello">("bad") given input "bad"`);
@@ -274,11 +275,11 @@ describe("given round trips for all primative constants (enums of 1 option)", ()
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<2>(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = 4;
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: Literal<5>(4) given input 4`);
@@ -294,11 +295,11 @@ describe("given round trips for all primative constants (enums of 1 option)", ()
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<number>(returnedValue);
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = false;
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: Literal<true>(false) given input false`);
@@ -316,11 +317,11 @@ it("should round trip for a shape", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = { a: 6 };
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ["a"]Literal<5>(6) given input {"a":6}`);
@@ -338,7 +339,7 @@ it("should round trip for a shape with name", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(schema.definitions).toHaveProperty("isFive");
@@ -347,7 +348,7 @@ it("should round trip for a shape with name", () => {
   expect((schema as any).$ref).toEqual("#/definitions/isShapeMagic");
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = { a: 6 };
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
@@ -362,11 +363,11 @@ it("should work with an every simple", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<6>(returnedValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = 6;
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: Literal<5>(6) given input 6`);
@@ -385,11 +386,11 @@ it("should work with an every shapes", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = { a: 6 };
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
@@ -410,7 +411,7 @@ it("should work with an every with names", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(schema.definitions).toHaveProperty("AmTwelve");
@@ -419,7 +420,7 @@ it("should work with an every with names", () => {
   expect((schema as any).$ref).toEqual("#/definitions/everything");
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = { a: 6 };
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ["a"]Literal<12>(6) given input {"a":6}`);
@@ -436,9 +437,9 @@ describe("should work with an some with names", () => {
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<number>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<string>(returnedValue);
   });
   it("should work with string", () => {
@@ -447,12 +448,12 @@ describe("should work with an some with names", () => {
     isType<typeof originalMatcher._TYPE>(returnedValue);
     isType<typeof matcher._TYPE>(returnedValue);
     isType<Type>(returnedValue);
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     isType<number>(returnedValue);
   });
   it("should fail on something that is not in some", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const test: Type = { a: 6 };
       matcher.unsafeCast(test);
     }).toThrow(`Failed type: Or<number,...>({"a":6}) given input {"a":6}`);
@@ -470,11 +471,11 @@ it("should round trip for a partial", () => {
   isType<typeof originalMatcher._TYPE>(returnedValue);
   isType<typeof matcher._TYPE>(returnedValue);
   isType<Type>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<number>(returnedValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = { a: 6 };
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: ["a"]Literal<5>(6) given input {"a":6}`);
@@ -514,17 +515,17 @@ it("should do a full round trip with the complicated defintion", () => {
   const returnedValue = matcher.unsafeCast(valid);
   isType<Type>(returnedValue);
   isType<Type2>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<5>(returnedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<{}[]>(returnedValue);
 
   const returnedValue2 = Array.from(matcher2.unsafeCast(valid));
   isType<Type>(returnedValue2);
   isType<Type2>(returnedValue2);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<5>(returnedValue2);
-  // // @ts-expect-error
+  // // @ts-expect-error: expect to be wrong type
   // isType<{}[]>(returnedValue2);
 
   expect(() => {
@@ -532,7 +533,7 @@ it("should do a full round trip with the complicated defintion", () => {
       {
         id: "123",
         result: {
-          // @ts-expect-error
+          // @ts-expect-error: expect to be wrong type
           P3KExecute3Quote: {
             Ok: {
               price: "string",
@@ -542,7 +543,7 @@ it("should do a full round trip with the complicated defintion", () => {
         },
       },
     ];
-    const returnedValue = matcher.unsafeCast(valid);
+    matcher.unsafeCast(valid);
   }).toThrow(
     `Failed type: [0]["result"]["P3KExecutedQuotes"]Or<Concat<Concat<object,Shape<{P3KSendRequest:any}>>,Partial<{P3KSendRequest:Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>}>>,...>("missingProperty") given input [{"id":"123","result":{"P3KExecute3Quote":{"Ok":{"price":"string","request_id":"string"}}}}]`,
   );
@@ -554,7 +555,7 @@ it("should do a full round trip with the complicated defintion", () => {
         result: {
           P3KExecuteQuote: {
             Ok: {
-              // @ts-expect-error
+              // @ts-expect-error: expect to be wrong type
               pri4ce: "string",
               request_id: "string",
             },
@@ -562,7 +563,7 @@ it("should do a full round trip with the complicated defintion", () => {
         },
       },
     ];
-    const returnedValue = matcher.unsafeCast(valid);
+    matcher.unsafeCast(valid);
   }).toThrow(
     `Failed type: [0]["result"]["P3KExecutedQuotes"]Or<Concat<Concat<object,Shape<{P3KSendRequest:any}>>,Partial<{P3KSendRequest:Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>}>>,...>("missingProperty") given input [{"id":"123","result":{"P3KExecuteQuote":{"Ok":{"pri4ce":"string","request_id":"string"}}}}]`,
   );

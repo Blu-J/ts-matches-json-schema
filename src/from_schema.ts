@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any ban-types
 import {
   matchArrayType,
   matchBooleanType,

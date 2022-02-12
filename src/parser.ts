@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import {
   any,
   arrayOf,
@@ -55,11 +56,11 @@ export function asSchemaMatcher<T>(
   }
   return every(
     matchReferenceFrom(schema, coalesceDefinitions),
-    matchTypeFrom(schema, coalesceDefinitions),
-    matchRequiredFrom(schema, coalesceDefinitions),
+    matchTypeFrom(schema),
+    matchRequiredFrom(schema),
     matchPropertiesFrom(schema, coalesceDefinitions),
     matchItemsFrom(schema, coalesceDefinitions),
-    matchEnumFrom(schema, coalesceDefinitions),
+    matchEnumFrom(schema),
     matchAnyOfFrom(schema, coalesceDefinitions),
     matchAllOfFrom(schema, coalesceDefinitions),
   );
@@ -75,14 +76,11 @@ function matchItemsFrom(
   return arrayOf(asSchemaMatcher<any>(schema.items, definitions));
 }
 
-function matchRequiredFrom(
-  schema: unknown,
-  definitions: any,
-): Validator<unknown, any> {
+function matchRequiredFrom(schema: unknown): Validator<unknown, any> {
   if (!matchRequireds.test(schema)) {
     return any;
   }
-  let requireds: { [key: string]: Validator<unknown, unknown> } = {};
+  const requireds: { [key: string]: Validator<unknown, unknown> } = {};
 
   for (const key of schema.required) {
     requireds[key] = any;
@@ -128,7 +126,7 @@ function matchPropertiesFrom(
   }
   const properties = schema.properties;
   const propertyKeys = Object.keys(properties);
-  let shape: { [key: string]: Validator<unknown, unknown> } = {};
+  const shape: { [key: string]: Validator<unknown, unknown> } = {};
 
   for (const key of propertyKeys) {
     const matcher = asSchemaMatcher<any>((properties as any)[key], definitions);
@@ -137,10 +135,7 @@ function matchPropertiesFrom(
   return partial(shape);
 }
 
-function matchEnumFrom(
-  schema: unknown,
-  definitions: any,
-): Validator<unknown, any> {
+function matchEnumFrom(schema: unknown): Validator<unknown, any> {
   if (!matchEnum.test(schema)) {
     return any;
   }
@@ -170,10 +165,7 @@ function matchReferenceFrom(
   return asSchemaMatcher(referenceSchema, definitions);
 }
 
-function matchTypeFrom(
-  schema: unknown,
-  definitions: any,
-): Validator<unknown, any> {
+function matchTypeFrom(schema: unknown): Validator<unknown, any> {
   if (!matchTypeShape.test(schema)) {
     return any;
   }

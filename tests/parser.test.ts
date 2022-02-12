@@ -1,9 +1,8 @@
+// deno-lint-ignore-file no-explicit-any  no-unused-vars
 import { asSchemaMatcher } from "../mod.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { Parser } from "../dependencies.ts";
 import { isType } from "./util.ts";
-
-// const { test } = Deno;
 
 export const complicatedDefinitions = {
   Currency: {
@@ -252,7 +251,7 @@ it("Validate simple object", () => {
   matcher.unsafeCast(goodValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: Type = 5;
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: object(5) given input 5`);
@@ -267,7 +266,7 @@ it("null checking", () => {
   matcher.unsafeCast(goodValue);
 
   expect(() => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const test: typeof matcher._TYPE = "test";
     matcher.unsafeCast(test);
   }).toThrow(`Failed type: null("test") given input "test"`);
@@ -366,7 +365,7 @@ describe("references", () => {
     });
     it("should fail", () => {
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error: expect to be wrong type
         const input: Type = "BadCurrency";
         matcher.unsafeCast(input);
       }).toThrow(
@@ -403,7 +402,7 @@ describe("references", () => {
         matcher.unsafeCast(valid);
       }).not.toThrow();
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error: expect to be wrong type
         const input: Type = ["Fun"];
         expect(matcher.unsafeCast(input));
       }).toThrow(
@@ -435,7 +434,7 @@ describe("references", () => {
         matcher.unsafeCast(valid);
       }).not.toThrow();
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error: expect to be wrong type
         const input: Type = ["Fun"];
         expect(matcher.unsafeCast(input));
       }).toThrow(
@@ -469,7 +468,7 @@ describe("references", () => {
         matcher.unsafeCast(valid);
       }).not.toThrow();
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error: expect to be wrong type
         const input: Type = ["wrongRequest"];
         expect(matcher.unsafeCast(input));
       }).toThrow(
@@ -503,7 +502,7 @@ describe("references", () => {
         matcher.unsafeCast(valid);
       }).not.toThrow();
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error: expect to be wrong type
         const input: Type = ["Fun"];
         expect(matcher.unsafeCast(input));
       }).toThrow(`Failed type: [0]object("Fun") given input ["Fun"]`);
@@ -526,7 +525,7 @@ describe("any of types", () => {
     matcher.unsafeCast(input);
   });
   it("Testing invalid", () => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const input: Type = "c";
 
     expect(() => matcher.unsafeCast(input)).toThrow(
@@ -549,14 +548,14 @@ describe("all of types", () => {
     matcher.unsafeCast(input);
   });
   it("Testing invalid partial", () => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const input: Type = { a: "a" };
     expect(() => matcher.unsafeCast(input)).toThrow(
       `Failed type: ["b"]Shape<{b:any}>("missingProperty") given input {"a":"a"}`,
     );
   });
   it("Testing invalid", () => {
-    // @ts-expect-error
+    // @ts-expect-error: expect to be wrong type
     const input: Type = { a: "a", b: "e" };
 
     expect(() => matcher.unsafeCast(input)).toThrow(
@@ -578,7 +577,7 @@ describe("enum types", () => {
   });
   it("invalid string", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: Type = "calculator";
       testMatcher.unsafeCast(invalid);
     }).toThrow(
@@ -668,7 +667,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
 
   it("throws for missing requireds", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: TestSchema = {};
       matchTestSchema.unsafeCast(invalid);
     }).toThrow(
@@ -677,7 +676,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
   });
   it("throws for invalid integer", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: TestSchema = { ...validShape, productId: "0" };
       matchTestSchema.unsafeCast(invalid);
     }).toThrow(
@@ -687,7 +686,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
 
   it("throws for invalid number", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: TestSchema = { ...validShape, price: "invalid" };
       matchTestSchema.unsafeCast(invalid);
     }).toThrow(
@@ -697,7 +696,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
 
   it("throws for invalid string", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: TestSchema = { ...validShape, productName: 0 };
       matchTestSchema.unsafeCast(invalid);
     }).toThrow(
@@ -707,7 +706,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
 
   it("throws for invalid array value", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: TestSchema = { ...validShape, tags: [0] };
       matchTestSchema.unsafeCast(invalid);
     }).toThrow(
@@ -717,7 +716,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
 
   it("throws for invalid array", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: TestSchema = { ...validShape, extras: "invalid" };
       matchTestSchema.unsafeCast(invalid);
     }).toThrow(
@@ -727,7 +726,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
 
   it("throws for invalid boolean", () => {
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error: expect to be wrong type
       const invalid: TestSchema = { ...validShape, isProduct: "false" };
       matchTestSchema.unsafeCast(invalid);
     }).toThrow(
@@ -739,7 +738,7 @@ describe("https://json-schema.org/learn/getting-started-step-by-step.html", () =
     expect(() => {
       const invalid: TestSchema = {
         ...validShape,
-        // @ts-expect-error
+        // @ts-expect-error: expect to be wrong type
         dimensions: {
           width: 12.0,
           height: 9.5,
@@ -772,8 +771,8 @@ it("Should be able to find type from partial", () => {
   isType<Parser<unknown, { a?: number }>>(matcher);
   const testedValue = matcher.unsafeCast({ a: 1 });
   isType<{ a?: number }>(testedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<{ a: number }>(testedValue);
-  // @ts-expect-error
+  // @ts-expect-error: expect to be wrong type
   isType<{ a?: 5 }>(testedValue);
 });

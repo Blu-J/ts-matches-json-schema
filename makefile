@@ -1,12 +1,16 @@
 version = $$(git tag --sort=committerdate | tail -1)
-bundle: test fmt
+bundle: test fmt lint
 	echo $(version)
 	deno run --allow-write --allow-env --allow-run --allow-read build.ts $(version)
-test: fmt
+test: fmt lint
 	deno test --allow-write --allow-read --unstable tests.ts
 
+
+lint: fmt
+	deno lint --config ./deno.config.json 
+
 fmt:
-	deno fmt
+	deno fmt  --config ./deno.config.json 
 
 publish: bundle
 	cd lib

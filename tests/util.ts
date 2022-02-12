@@ -1,1 +1,1 @@
-export function isType<T>(x: T) {}
+export function isType<T>(_x: T) {}

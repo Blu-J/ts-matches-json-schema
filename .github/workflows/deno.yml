@@ -33,7 +33,7 @@ jobs:
       #   run: deno fmt --check
 
       - name: Run linter
-        run: deno lint
+        run: deno lint --config ./deno.config.json
 
       - name: Create coverage files
         run: deno test --unstable --coverage=coverage ./tests.ts # create coverage files
