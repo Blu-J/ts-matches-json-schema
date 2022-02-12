@@ -1,4 +1,15 @@
-import { literal, shape, any, object, arrayOf, string, some, number, boolean, nill } from "../dependencies.ts";
+import {
+  any,
+  arrayOf,
+  boolean,
+  literal,
+  nill,
+  number,
+  object,
+  shape,
+  some,
+  string,
+} from "../dependencies.ts";
 
 export const matchStringType = literal("string");
 export const matchNumberType = literal("number");
@@ -28,7 +39,7 @@ export const matchAnyOf = some(
   }),
   shape({
     oneOf: arrayOf(object),
-  })
+  }),
 );
 export const matchAllOf = shape({
   allOf: arrayOf(object),

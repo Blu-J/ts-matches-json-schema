@@ -6,7 +6,13 @@ await build({
   outDir: "./lib",
   shims: {
     // see JS docs for overview and more options
-    deno: true,
+    deno: "dev",
+  },
+  mappings: {
+    "https://deno.land/x/ts_matches@5.1.5/mod.ts": {
+      name: "ts-matches",
+      version: "^5.1.5",
+    },
   },
   package: {
     // package.json properties

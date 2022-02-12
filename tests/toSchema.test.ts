@@ -1,22 +1,26 @@
 import { asSchemaMatcher } from "../mod.ts";
 import {
-  Parser,
-  object,
-  nill,
-  string,
-  boolean,
-  number,
   array,
   arrayOf,
-  literal,
-  shape,
+  boolean,
   every,
+  literal,
+  nill,
+  number,
+  object,
+  Parser,
+  partial,
+  shape,
   some,
+  string,
 } from "../dependencies.ts";
 import { describe, expect, it } from "https://deno.land/x/tincan/mod.ts";
 import { toSchema } from "../mod.ts";
 import { isType } from "./util.ts";
 import { ToSchema } from "../src/to_schema.ts";
+import { complicatedDefinitions } from "./parser.test.ts";
+import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
+
 describe("round trips of primitives", () => {
   it("Object", () => {
     const originalMatcher = object;
@@ -197,7 +201,9 @@ it("arrayOf parser", () => {
 });
 
 it("arrayOf parser with names", () => {
-  const originalMatcher = arrayOf(number.name("Im_a_number")).name("Im_an_array");
+  const originalMatcher = arrayOf(number.name("Im_a_number")).name(
+    "Im_an_array",
+  );
   const schema = toSchema(originalMatcher);
   isType<ToSchema<number[]>>(schema);
   const matcher = asSchemaMatcher(schema);
@@ -321,7 +327,9 @@ it("should round trip for a shape", () => {
 });
 
 it("should round trip for a shape with name", () => {
-  const originalMatcher = shape({ a: literal(12).name("isFive") }).name("isShapeMagic");
+  const originalMatcher = shape({ a: literal(12).name("isFive") }).name(
+    "isShapeMagic",
+  );
   const schema = toSchema(originalMatcher);
   const matcher = asSchemaMatcher(schema);
   type Type = typeof matcher._TYPE;
@@ -365,7 +373,10 @@ it("should work with an every simple", () => {
 });
 
 it("should work with an every shapes", () => {
-  const originalMatcher = every(shape({ a: literal(12) }), shape({ a: number }));
+  const originalMatcher = every(
+    shape({ a: literal(12) }),
+    shape({ a: number }),
+  );
   const schema = toSchema(originalMatcher);
   const matcher = asSchemaMatcher(schema);
   type Type = typeof matcher._TYPE;
@@ -389,7 +400,7 @@ it("should work with an every with names", () => {
     shape({ a: literal(12).name("AmTwelve") }),
     shape({ a: number.name("someNumber") })
       .name("other")
-      .name("superNestings")
+      .name("superNestings"),
   ).name("everything");
   const schema = toSchema(originalMatcher);
   const matcher = asSchemaMatcher(schema);
@@ -447,5 +458,142 @@ describe("should work with an some with names", () => {
     }).toThrow(`Failed type: Or<number,...>({"a":6}) given input {"a":6}`);
   });
 });
-// TODO Complicated references
-// TODO Partial
+
+it("should round trip for a partial", () => {
+  const originalMatcher = partial({ a: literal(5) });
+  const schema = toSchema(originalMatcher);
+  const matcher = asSchemaMatcher(schema);
+  isType<Parser<unknown, { a?: 5 }>>(matcher);
+  type Type = typeof matcher._TYPE;
+  const goodValue: Type = {};
+  const returnedValue = matcher.unsafeCast(goodValue);
+  isType<typeof originalMatcher._TYPE>(returnedValue);
+  isType<typeof matcher._TYPE>(returnedValue);
+  isType<Type>(returnedValue);
+  // @ts-expect-error
+  isType<number>(returnedValue);
+
+  expect(() => {
+    // @ts-expect-error
+    const test: Type = { a: 6 };
+    matcher.unsafeCast(test);
+  }).toThrow(`Failed type: ["a"]Literal<5>(6) given input {"a":6}`);
+});
+
+it("should do a full round trip with the complicated defintion", () => {
+  const matcher = asSchemaMatcher(
+    {
+      type: "array",
+      items: {
+        $ref: "#/definitions/JsonRpcResponse",
+      },
+      definitions: complicatedDefinitions,
+    } as const,
+  );
+  type Type = typeof matcher._TYPE;
+
+  const schema = toSchema(matcher);
+  isType<ToSchema<Type>>(schema);
+
+  const matcher2 = asSchemaMatcher(schema);
+  type Type2 = typeof matcher._TYPE;
+
+  const valid: Type = [
+    {
+      id: "123",
+      result: {
+        P3KExecuteQuote: {
+          Ok: {
+            price: "string",
+            request_id: "string",
+          },
+        },
+      },
+    },
+  ];
+  const returnedValue = matcher.unsafeCast(valid);
+  isType<Type>(returnedValue);
+  isType<Type2>(returnedValue);
+  // @ts-expect-error
+  isType<5>(returnedValue);
+  // @ts-expect-error
+  isType<{}[]>(returnedValue);
+
+  const returnedValue2 = Array.from(matcher2.unsafeCast(valid));
+  isType<Type>(returnedValue2);
+  isType<Type2>(returnedValue2);
+  // @ts-expect-error
+  isType<5>(returnedValue2);
+  // // @ts-expect-error
+  // isType<{}[]>(returnedValue2);
+
+  expect(() => {
+    const valid: Type = [
+      {
+        id: "123",
+        result: {
+          // @ts-expect-error
+          P3KExecute3Quote: {
+            Ok: {
+              price: "string",
+              request_id: "string",
+            },
+          },
+        },
+      },
+    ];
+    const returnedValue = matcher.unsafeCast(valid);
+  }).toThrow(
+    `Failed type: [0]["result"]["P3KExecutedQuotes"]Or<Concat<Concat<object,Shape<{P3KSendRequest:any}>>,Partial<{P3KSendRequest:Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>}>>,...>("missingProperty") given input [{"id":"123","result":{"P3KExecute3Quote":{"Ok":{"price":"string","request_id":"string"}}}}]`,
+  );
+
+  expect(() => {
+    const valid: Type = [
+      {
+        id: "123",
+        result: {
+          P3KExecuteQuote: {
+            Ok: {
+              // @ts-expect-error
+              pri4ce: "string",
+              request_id: "string",
+            },
+          },
+        },
+      },
+    ];
+    const returnedValue = matcher.unsafeCast(valid);
+  }).toThrow(
+    `Failed type: [0]["result"]["P3KExecutedQuotes"]Or<Concat<Concat<object,Shape<{P3KSendRequest:any}>>,Partial<{P3KSendRequest:Or<Concat<Concat<object,Shape<{Ok:any}>>,Partial<{Ok:Concat<Concat<object,Shape<{expiration_time:any,price:any,request_id:any,size:any}>>,Partial<{expiration_time:string,price:string,request_id:string,size:number}>>}>>,...>}>>,...>("missingProperty") given input [{"id":"123","result":{"P3KExecuteQuote":{"Ok":{"pri4ce":"string","request_id":"string"}}}}]`,
+  );
+});
+
+it("to schema test shape for literal", () => {
+  const matcher = shape(
+    { a: literal(5), b: literal("5").name("Is_string_5") },
+    ["b"],
+  );
+  const schema = toSchema(matcher);
+  assertEquals(schema, {
+    allOf: [
+      {
+        type: "object",
+        properties: {
+          b: { $ref: "#/definitions/Is_string_5" },
+        },
+        required: [],
+      },
+      {
+        type: "object",
+        properties: {
+          a: {
+            type: "number",
+            enum: [5],
+          },
+        },
+        required: ["a"],
+      },
+    ],
+    definitions: { Is_string_5: { type: "string", enum: ["5"] } },
+  });
+});
