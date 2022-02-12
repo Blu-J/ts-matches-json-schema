@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [v5.1.4]
+
+### Added
+
+- Feature for going from parser to schema
+
 ## [v5.1.0]
 
 Converted the old npm only package to a deno + umd + esm package.
