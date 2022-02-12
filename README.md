@@ -1,6 +1,7 @@
 # ts-matches-json-schema
 
 [![Coverage Status](https://coveralls.io/repos/github/Blu-J/ts-matches-json-schema/badge.svg?branch=master)](https://coveralls.io/github/Blu-J/ts-matches-json-schema?branch=master)
+
 The problem that we want solved is that we have generated out some JSON-Schema,
 but we would like the types in typescript. As well, we would like to validate
 these types are valid (throw/ case switch).
@@ -108,9 +109,7 @@ Convert a parser into a schema
 
 ```ts
 import { literal, shape } from "https://deno.land/x/ts_matches@5.1.4/mod.ts";
-const matcher = shape({ a: literal(5), b: literal("5").name("Is_string_5") }, [
-  "b",
-]);
+const matcher = shape({ a: literal(5), b: literal("5").name("Is_string_5") }, ["b"]);
 const schema = toSchema(matcher);
 assertEquals(schema, {
   allOf: [
