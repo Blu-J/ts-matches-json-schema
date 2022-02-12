@@ -13,6 +13,7 @@ and this project adheres to
 ### Added
 
 - Feature for going from parser to schema
+- Releasing for deno + npm
 
 ## [v5.1.0]
 
