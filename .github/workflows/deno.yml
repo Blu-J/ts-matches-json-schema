@@ -43,4 +43,4 @@ jobs:
         uses: coverallsapp/github-action@master # upload the report on Codecov
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./coverage.lcov
+          path-to-lcov: ./coverage.lcov
