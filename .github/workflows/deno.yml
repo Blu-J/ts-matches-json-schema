@@ -42,5 +42,6 @@ jobs:
       - name: Collect coverage
         uses: coverallsapp/github-action@master # upload the report on Codecov
         with:
+          github-token: ${{ secrets.github_token }}
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.lcov
