@@ -2,12 +2,12 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/Blu-J/ts-matches-json-schema/badge.svg?branch=master)](https://coveralls.io/github/Blu-J/ts-matches-json-schema?branch=master)
 
-The problem that we want solved is that we have generated out some JSON-Schema,
+The problem that we want solved is that we have generated out some [JSON-Schema](https://json-schema.org/),
 but we would like the types in typescript. As well, we would like to validate
 these types are valid (throw/ case switch).
 
 So this is going to be a subset of the potential json schema. If I can't get a
-typescript type from the schema, then I'm not going to make the validation. If
+typescript type from the schema, then I'm probably not going to be making a validation. If
 you want to have full validation, but no typescript types, something like
 [AJV.js](https://ajv.js.org/) is going to fit your bill better.
 
